@@ -1,13 +1,15 @@
 extends CharacterBody2D
+class_name playercontrol
 
 const speed = 200
 const jump_velocity = -400
 const acceleration = speed / 0.1
 const deacceleration = speed / 0.04
-var dashvel = 4000
+var dashvel = 1000
 var curr_state
 var direction = 0
-var animator : AnimatedSprite2D
+var dash_dir = 1
+@export var animator : AnimatedSprite2D
 
 enum State {
 	IDLE,
@@ -33,19 +35,19 @@ func _process(_delta):
 func _physics_process(delta):
 	
 	if curr_state != State.DASH:
-		if Input.is_action_pressed("right"):
-			direction = -1
-		elif Input.is_action_pressed("left"):
-			direction = 1
-		else:
-			direction = 0
+		if Input.is_action_just_pressed("jump") and is_on_floor():
+			velocity.y = jump_velocity
+			curr_state = State.IN_AIR
+		direction = Input.get_axis("left","right")
 			
 		if not is_on_floor():
 			velocity += get_gravity() * delta
 		
 		if direction == 0:
-			if abs(velocity.x) != 0:
-				velocity.x += deacceleration * delta * sign(velocity.x)
+			if abs(velocity.x) > 40:
+				velocity.x += deacceleration * delta * sign(velocity.x) * (-1)
+			else:
+				velocity.x = 0
 		else:
 			if abs(velocity.x) < speed:
 				velocity.x += acceleration * delta * direction
@@ -59,6 +61,8 @@ func _physics_process(delta):
 			in_air()
 		State.DASH:
 			dash()
+			
+	move_and_slide()
 	
 func idle():
 	pass
@@ -70,8 +74,14 @@ func in_air():
 	pass
 
 func dash():
-	velocity.x = dashvel * direction
+	if animator.flip_h:
+		dash_dir = -1
+	else:
+		dash_dir = 1
+	
 
 
 func _on_animated_sprite_2d_animation_finished() -> void:
 	curr_state = State.IDLE
+	if animator.animation == "dash":
+		global_position.x += 82 * dash_dir
