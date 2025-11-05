@@ -10,6 +10,8 @@ func _process(_delta):
 			idle()
 		playercontrol.State.ATTACK:
 			attack()
+		playercontrol.State.PROJECTILE:
+			projectile()
 		playercontrol.State.IN_AIR:
 			in_air()
 		playercontrol.State.DASH:
@@ -27,6 +29,9 @@ func idle():
 		
 func attack():
 	play("attack")
+	
+func projectile():
+	play("projectile")
 	
 func in_air():
 	
@@ -54,7 +59,6 @@ func in_air():
 func dash():
 	play("dash")
 		
-
 
 func _on_animation_finished() -> void:
 	if animation == "down_slash":

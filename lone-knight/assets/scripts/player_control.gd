@@ -13,12 +13,14 @@ var jump_count := 0
 @export var animator : AnimatedSprite2D
 
 signal on_ground
+signal projectile_launch
 
 enum State {
 	IDLE,
 	ATTACK,
 	IN_AIR,
 	DASH,
+	PROJECTILE,
 }
 
 func _ready():
@@ -30,18 +32,23 @@ func _process(_delta):
 		curr_state = State.DASH
 	elif Input.is_action_just_pressed("attack") or curr_state == State.ATTACK:
 		curr_state = State.ATTACK
+	elif Input.is_action_just_pressed("projectile") or curr_state == State.PROJECTILE:
+		curr_state = State.PROJECTILE
 		
 	if is_on_floor():
 		jump_count = 0
 
 
 func _physics_process(delta):
+	print(get_gravity())
 
 	match curr_state:
 		State.IDLE:
 			idle(delta)
 		State.ATTACK:
 			attack()
+		State.PROJECTILE:
+			projectile()
 		State.IN_AIR:
 			in_air(delta)
 		State.DASH:
@@ -80,6 +87,11 @@ func idle(delta):
 
 func attack():
 	animator.rotation = 0
+	
+func projectile():
+	animator.rotation = 0
+	if animator.frame == 1:
+		projectile_launch.emit()
 	
 func in_air(_delta):
 	if jump_count < 2:
